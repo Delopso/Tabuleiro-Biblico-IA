@@ -141,7 +141,6 @@ input:focus { outline: none; border-color: #667eea; }
 .peca-jogador-4 { background: #fdd835; }
 .peca-jogador-5 { background: #8e24aa; }
 .peca-jogador-6 { background: #fb8c00; }
-
 .peca-jogador.destaque {
   border-color: #fff;
   box-shadow: 0 0 12px rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.6);
@@ -150,6 +149,57 @@ input:focus { outline: none; border-color: #667eea; }
 @keyframes pulsar {
   0%, 100% { transform: translate(-50%, -50%) scale(1); }
   50% { transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* ===== EXIBIÇÃO DO DADO ===== */
+.dado-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 15px 20px;
+  border-radius: 12px;
+  margin: 12px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: aparecerDado 0.4s ease-out;
+}
+.dado-img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  animation: girarDado 0.5s ease-out;
+}
+.dado-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dado-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 500;
+}
+.dado-numero {
+  color: white;
+  font-size: 32px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+@keyframes aparecerDado {
+  from { 
+    opacity: 0; 
+    transform: translateY(-10px) scale(0.9); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+@keyframes girarDado {
+  0% { transform: rotate(0deg) scale(0.5); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
 }
 
 /* Responsivo */
@@ -165,11 +215,21 @@ input:focus { outline: none; border-color: #667eea; }
     border-width: 2px;
   }
 }
-
 @media (max-width: 600px) {
   body { padding: 8px; }
   .card { padding: 15px; }
   .btn { width: 100%; margin: 4px 0; font-size: 14px; padding: 10px; }
   .botoes-julgamento { flex-direction: column; }
   h1 { font-size: 1.3em; }
+  .dado-container {
+    padding: 12px 15px;
+    gap: 12px;
+  }
+  .dado-img {
+    width: 55px;
+    height: 55px;
+  }
+  .dado-numero {
+    font-size: 26px;
+  }
 }
