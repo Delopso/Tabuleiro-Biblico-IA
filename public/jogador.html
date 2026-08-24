@@ -4,48 +4,72 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jogador</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
   <div class="container">
     <h1>🎮 Entrar no Jogo</h1>
 
+    <!-- TELA DE LOGIN -->
     <div id="login" class="card">
-      <label>Código da sala:
-        <input type="text" id="codigoSala" placeholder="Ex: ABC123" maxlength="6">
+      <label>
+        Código da sala:
+        <input type="text" id="codigoSala" maxlength="6" placeholder="Ex: ABC123">
       </label>
-      <label>Seu nome:
-        <input type="text" id="nomeJogador" placeholder="Digite seu nome" maxlength="20">
+      <label>
+        Seu nome:
+        <input type="text" id="nomeJogador" maxlength="20" placeholder="Seu nome">
       </label>
-      <button id="btnEntrar" class="btn btn-primario">Entrar</button>
-      <p id="erro" class="erro" style="display:none;"></p>
+      <button class="btn btn-primario" id="btnEntrar">Entrar</button>
+      <p id="erro" class="erro" style="display: none;"></p>
     </div>
 
-    <div id="jogo" class="card" style="display:none;">
-      <h2 id="tituloJogador">Você</h2>
-      <p>Casa atual: <strong id="minhaCasa">0</strong></p>
+    <!-- TELA DO JOGO -->
+    <div id="jogo" class="card" style="display: none;">
+      
+      <div class="info-sala">
+        <p><strong>Casa atual:</strong> <span id="minhaCasa">0</span></p>
+      </div>
 
-      <!-- TABULEIRO COM IMAGEM -->
+      <div class="area-turno">
+        <p class="quem-joga">Vez de: <strong id="nomeQuemJoga">—</strong></p>
+      </div>
+
+      <!-- Tabuleiro (ID corrigido para tabuleiroImagem) -->
       <div class="tabuleiro-imagem-wrapper">
         <div class="tabuleiro-imagem-container" id="tabuleiroImagem">
           <!-- Peças dos jogadores serão inseridas aqui via JS -->
         </div>
       </div>
-      <div id="legenda" class="legenda"></div>
 
-      <div id="placar" class="placar"></div>
+      <div class="legenda" id="legenda"></div>
+      <div class="placar" id="placar"></div>
 
-      <div id="areaPergunta" class="area-pergunta" style="display:none;">
-        <p class="quem-joga">Vez de: <strong id="nomeQuemJoga"></strong></p>
-        <h3 id="textoPergunta">Pergunta</h3>
-        <p id="textoResposta" class="resposta-revelada" style="display:none;"></p>
-        <p id="resultadoTexto" class="resultado"></p>
+      <!-- Área da pergunta -->
+      <div id="areaPergunta" class="area-pergunta" style="display: none;">
+        <h3>Pergunta</h3>
+        <p id="textoPergunta"></p>
       </div>
+
+      <!-- Exibição do dado (DEPOIS da pergunta) -->
+      <div id="resultadoDado" class="dado-container" style="display: none;">
+        <img id="imgDado" src="" alt="Dado" class="dado-img">
+        <div class="dado-info">
+          <span class="dado-label">Resultado:</span>
+          <span id="numDado" class="dado-numero"></span>
+        </div>
+      </div>
+
+      <!-- Resposta e Resultado -->
+      <div id="textoResposta" class="resposta-revelada" style="display: none;"></div>
+      <div id="resultadoTexto" class="resultado"></div>
+
     </div>
   </div>
 
+  <!-- Scripts na ordem correta -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="js/coordenadas.js"></script>
-  <script src="js/jogador.js"></script>
+  <script src="/js/coordenadas.js"></script>
+  <script src="/js/jogador.js"></script>
 </body>
 </html>
