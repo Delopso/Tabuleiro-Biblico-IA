@@ -157,14 +157,14 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   socket.on('resultado', function(data) {
-    console.log('📊 Resultado:', data);
+    console.log(' Resultado:', data);
     const textoResposta = document.getElementById('textoResposta');
     const resultadoTexto = document.getElementById('resultadoTexto');
     
     if (textoResposta) {
       let html = '<strong>Resposta:</strong> ' + (data.resposta || '—');
       if (data.fonte) {
-        html += '<br><strong>📖 Fonte:</strong> ' + data.fonte;
+        html += '<br><strong> Fonte:</strong> ' + data.fonte;
       }
       if (data.link) {
         html += '<br><strong>🔗 Link:</strong> <a href="' + data.link + '" target="_blank" style="color:#2563eb;word-break:break-all;">' + data.link + '</a>';
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   socket.on('proximoJogador', function() {
-    console.log('️ Próximo jogador');
+    console.log('⏭️ Próximo jogador');
     
     // ✅ NOVO: Esconder o dado
     const divDado = document.getElementById('resultadoDado');
@@ -194,15 +194,26 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🏆 Jogo finalizado!', ranking);
     const modal = document.createElement('div');
     modal.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.8); display: flex; align-items: center;
-      justify-content: center; z-index: 9999;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
     `;
     
     const conteudo = document.createElement('div');
     conteudo.style.cssText = `
-      background: white; padding: 40px; border-radius: 15px;
-      max-width: 600px; width: 90%; text-align: center;
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
       box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     `;
     
@@ -223,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     rankingHTML += '</div>';
-    rankingHTML += '<p style="color: #666; font-style: italic; margin-top: 20px;">Parabéns a todos! Cada acerto representa conhecimento conquistado, e cada erro é uma oportunidade de aprender algo novo.</p>';
+    rankingHTML += '<p style="color: #666; font-style: italic; margin-top: 20px;">Parabéns a todos! Cada acerto representa conhecimento conquistado, e cada erro é uma oportunidade de aprender algo novo. Que tal pesquisar sobre as perguntas que mais surpreenderam vocês hoje? O verdadeiro prêmio é a curiosidade que despertamos!</p>';
     rankingHTML += '<button onclick="location.reload()" style="margin-top: 20px; padding: 12px 30px; background: #1e88e5; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">Voltar ao Início</button>';
     
     conteudo.innerHTML = rankingHTML;

@@ -21,7 +21,7 @@ let estadoJogo = {
   perguntaAtual: null,
   historicoCasas: {},
   moderadorSocketId: null,
-  jogadoresNaCasa102: 0 // ✅ NOVO: Contador de jogadores que chegaram na casa 102
+  jogadoresNaCasa102: 0
 };
 
 function gerarCodigoSala() {
@@ -33,6 +33,22 @@ function getPergunta(casa, nomeJogador) {
   if (esp) return esp;
   const disp = perguntas.filter(p => p.Casa == casa);
   return disp.length ? disp[Math.floor(Math.random() * disp.length)] : null;
+}
+
+// Avança para o próximo jogador que AINDA NÃO terminou o jogo (não acertou a 102)
+function avancarParaProximoJogadorValido() {
+  const total = estadoJogo.jogadores.length;
+  let tentativas = 0;
+
+  while (tentativas < total) {
+    estadoJogo.jogadorAtual = (estadoJogo.jogadorAtual + 1) % total;
+    const j = estadoJogo.jogadores[estadoJogo.jogadorAtual];
+    if (!j.chegouNa102) {
+      return true;
+    }
+    tentativas++;
+  }
+  return false;
 }
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
@@ -71,7 +87,7 @@ io.on('connection', (socket) => {
       acertos: 0,
       erros: 0,
       socketId: socket.id,
-      chegouNa102: false // ✅ NOVO: Flag para saber se já chegou na casa 102
+      chegouNa102: false // Só será true quando ele ACERTAR a pergunta da casa 102
     };
     estadoJogo.jogadores.push(j);
     estadoJogo.historicoCasas[j.id] = [0];
@@ -84,18 +100,22 @@ io.on('connection', (socket) => {
   socket.on('iniciarTurno', () => {
     if (!estadoJogo.jogadores.length) return;
 
-    const j = estadoJogo.jogadores[estadoJogo.jogadorAtual];
+    // Pula jogadores que JÁ terminaram o jogo (acertaram a 102 anteriormente)
+    let j = estadoJogo.jogadores[estadoJogo.jogadorAtual];
+    while (j.chegouNa102) {
+      const encontrou = avancarParaProximoJogadorValido();
+      if (!encontrou) {
+        console.log('⚠️ Todos os jogadores já finalizaram o jogo.');
+        return;
+      }
+      j = estadoJogo.jogadores[estadoJogo.jogadorAtual];
+    }
+
     const dado = Math.floor(Math.random() * 6) + 1;
     let novaCasa = j.casa + dado;
-
     if (novaCasa > 102) novaCasa = 102;
-    
-    // ✅ NOVO: Se chegou na casa 102 pela primeira vez, incrementa contador
-    if (novaCasa === 102 && !j.chegouNa102) {
-      j.chegouNa102 = true;
-      estadoJogo.jogadoresNaCasa102++;
-    }
-    
+
+    // Atualiza a casa, mas AINDA NÃO marca como finalizado
     j.casa = novaCasa;
     estadoJogo.historicoCasas[j.id].push(novaCasa);
 
@@ -127,6 +147,12 @@ io.on('connection', (socket) => {
 
     if (acertou) {
       j.acertos++;
+      
+      // ✅ CORREÇÃO: Só finaliza o jogador se ele ACERTOU e está na casa 102
+      if (j.casa === 102 && !j.chegouNa102) {
+        j.chegouNa102 = true;
+        estadoJogo.jogadoresNaCasa102++;
+      }
     } else {
       j.erros++;
       if (hist.length >= 2) {
@@ -144,25 +170,18 @@ io.on('connection', (socket) => {
       jogador: j.nome,
       casaFinal: j.casa
     });
-
     io.to('sala').emit('jogadoresAtualizados', estadoJogo.jogadores);
 
-    // ✅ CORRIGIDO: Verificar se é fim de jogo
-    // Condição: jogador está na casa 102 E é o penúltimo a chegar lá
-    const isCasa102 = j.casa === 102;
+    // ✅ Verificar fim de jogo: Se acabou de finalizar (acertou na 102) e é o penúltimo
     const totalJogadores = estadoJogo.jogadores.length;
     const jogadoresQueFaltam = totalJogadores - estadoJogo.jogadoresNaCasa102;
 
-    // O jogo termina quando o penúltimo jogador chega na casa 102
-    // Ou seja, quando falta apenas 1 jogador para chegar na casa 102
-    if (isCasa102 && jogadoresQueFaltam === 1) {
+    if (j.chegouNa102 && jogadoresQueFaltam === 1) {
       const ranking = [...estadoJogo.jogadores].sort((a, b) => {
         if (b.acertos !== a.acertos) return b.acertos - a.acertos;
         return a.erros - b.erros;
       });
-
       console.log('🏆 FIM DE JOGO! Ranking:', ranking);
-
       io.to('sala').emit('jogoFinalizado', {
         ranking: ranking.map(j => ({
           nome: j.nome,
@@ -174,7 +193,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('proximoJogador', () => {
-    estadoJogo.jogadorAtual = (estadoJogo.jogadorAtual + 1) % estadoJogo.jogadores.length;
+    const encontrou = avancarParaProximoJogadorValido();
+    
+    if (!encontrou) {
+      console.log('️ Não há mais jogadores válidos.');
+      return;
+    }
+
     estadoJogo.perguntaAtual = null;
     io.to('sala').emit('proximoJogador', {
       jogador: estadoJogo.jogadores[estadoJogo.jogadorAtual].nome

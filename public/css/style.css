@@ -164,8 +164,8 @@ input:focus { outline: none; border-color: #667eea; }
   animation: aparecerDado 0.4s ease-out;
 }
 .dado-img {
-  width: 40px;
-  height: 40px;
+  width: 70px;
+  height: 70px;
   object-fit: contain;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
   animation: girarDado 0.5s ease-out;
