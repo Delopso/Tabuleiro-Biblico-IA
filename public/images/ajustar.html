@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ajustar Coordenadas</title>
+<style>
+body{font-family:sans-serif;background:#1e1e2e;color:#eee;margin:0;padding:15px}
+h1{text-align:center;color:#89b4fa;margin:0 0 15px}
+.topo{background:#313244;padding:15px;border-radius:10px;margin-bottom:15px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.topo label{margin:0;font-size:14px}
+.topo select,.topo input,.topo button{padding:8px 12px;border-radius:6px;border:1px solid #555;background:#1e1e2e;color:#eee;font-size:14px}
+.topo button{cursor:pointer;font-weight:bold}
+.btn-copiar{background:#a6e3a1;color:#1e1e2e}
+.btn-baixar{background:#f9e2af;color:#1e1e2e}
+.btn-reset{background:#f38ba8;color:#1e1e2e}
+.info{display:flex;gap:15px;margin-top:10px;font-family:monospace;font-size:14px;flex-wrap:wrap}
+.info div{background:#1e1e2e;padding:6px 12px;border-radius:6px}
+.info strong{color:#f9e2af}
+.info span{color:#a6e3a1;font-weight:bold}
+.setas{display:flex;gap:5px}
+.setas button{width:40px;height:40px;font-size:18px;cursor:pointer;background:#45475a;color:#eee;border:1px solid #555;border-radius:6px}
+.setas button:hover{background:#585b70}
+#tabuleiro{position:relative;width:600px;height:450px;background:#45475a;border:3px solid #89b4fa;border-radius:8px;overflow:hidden;cursor:crosshair;margin:0 auto;user-select:none}
+#tabuleiro img{width:100%;height:100%;display:block;pointer-events:none;user-select:none}
+#marcador{position:absolute;width:16px;height:16px;border-radius:50%;background:#f38ba8;border:3px solid white;box-shadow:0 0 15px rgba(243,139,168,0.9);transform:translate(-50%,-50%);cursor:grab;z-index:100}
+#marcador:active{cursor:grabbing}
+#marcadorInfo{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:#1e1e2e;color:#f9e2af;padding:3px 8px;border-radius:4px;font-size:12px;font-weight:bold;white-space:nowrap;border:1px solid #f9e2af}
+.mini-pt{position:absolute;width:8px;height:8px;border-radius:50%;background:rgba(137,180,250,0.5);border:1px solid white;transform:translate(-50%,-50%);pointer-events:none}
+.mini-pt.ativo{background:#f9e2af;width:12px;height:12px;box-shadow:0 0 10px #f9e2af}
+#codigo{background:#1e1e2e;color:#a6e3a1;padding:12px;border-radius:6px;font-family:monospace;font-size:11px;max-height:200px;overflow-y:auto;white-space:pre;margin-top:15px;border:1px solid #555}
+.status{background:#89b4fa;color:#1e1e2e;padding:8px;border-radius:6px;text-align:center;margin-top:10px;font-weight:bold}
+.dica{font-size:12px;color:#a6adc8;margin-top:5px;font-style:italic}
+</style>
+</head>
+<body>
+
+<h1>🎯 Ajustador de Coordenadas</h1>
+
+<div class="topo">
+  <label>📷 Imagem: <input type="file" id="imgInput" accept="image/*"></label>
+  <label>🏠 Casa: <select id="selCasa"></select></label>
+  <div class="setas">
+    <button onclick="mover(-1,0)" title="Esquerda">←</button>
+    <button onclick="mover(0,-1)" title="Cima">↑</button>
+    <button onclick="mover(0,1)" title="Baixo">↓</button>
+    <button onclick="mover(1,0)" title="Direita">→</button>
+  </div>
+  <button class="btn-copiar" onclick="copiarCodigo()">📋 COPIAR CÓDIGO</button>
+  <button class="btn-baixar" onclick="baixarArquivo()">⬇️ BAIXAR .js</button>
+  <button class="btn-reset" onclick="resetar()">🗑️ RESETAR</button>
+</div>
+
+<div class="info">
+  <div><strong>CASA:</strong> <span id="infoCasa">1</span></div>
+  <div><strong>X (%):</strong> <span id="infoX">0</span></div>
+  <div><strong>Y (%):</strong> <span id="infoY">0</span></div>
+  <div><strong>X (px):</strong> <span id="infoPx">0</span></div>
+  <div><strong>Y (px):</strong> <span id="infoPy">0</span></div>
+</div>
+<div class="dica">💡 Dica: Use as SETAS do teclado (1%). SHIFT+SETA = 0.2%. As alterações são salvas automaticamente (pode dar F5).</div>
+
+<div id="tabuleiro">
+  <img id="imgTab" src="">
+  <div id="todosPts"></div>
+  <div id="marcador"><div id="marcadorInfo">Casa 1</div></div>
+</div>
+
+<div id="status" class="status">Pronto. Arraste o marcador rosa ou clique na imagem.</div>
+
+<h3 style="color:#89b4fa;margin-top:20px">📄 Código gerado (copie e cole no coordenadas.js):</h3>
+<div id="codigo"></div>
+
+<script>
+const PADRAO = {
+  1:{x:3,y:6},2:{x:3,y:12},3:{x:7,y:15},4:{x:11,y:12},5:{x:12,y:10},
+  6:{x:25,y:8},7:{x:19,y:8},8:{x:22,y:11},9:{x:27,y:14},10:{x:31,y:16},
+  11:{x:35,y:14},12:{x:39,y:10},13:{x:43,y:8},14:{x:47,y:8},15:{x:51,y:10},
+  16:{x:55,y:12},17:{x:59,y:14},18:{x:63,y:16},19:{x:67,y:14},20:{x:71,y:12},
+  21:{x:75,y:10},22:{x:79,y:8},23:{x:83,y:8},24:{x:87,y:10},
+  25:{x:90,y:14},26:{x:92,y:18},27:{x:93,y:22},28:{x:92,y:26},
+  29:{x:90,y:28},30:{x:87,y:30},31:{x:84,y:32},32:{x:81,y:34},33:{x:78,y:36},
+  34:{x:75,y:38},35:{x:72,y:40},36:{x:69,y:42},37:{x:66,y:44},38:{x:63,y:46},
+  39:{x:60,y:48},40:{x:57,y:50},41:{x:54,y:48},42:{x:51,y:46},43:{x:48,y:44},
+  44:{x:45,y:42},45:{x:42,y:40},46:{x:39,y:38},47:{x:36,y:36},48:{x:33,y:34},
+  49:{x:30,y:32},50:{x:27,y:34},51:{x:25,y:38},52:{x:24,y:42},53:{x:25,y:46},
+  54:{x:27,y:48},55:{x:30,y:50},56:{x:33,y:52},57:{x:36,y:54},58:{x:39,y:56},
+  59:{x:42,y:58},60:{x:45,y:60},61:{x:48,y:62},62:{x:51,y:64},63:{x:54,y:66},
+  64:{x:57,y:68},65:{x:60,y:70},66:{x:63,y:72},67:{x:66,y:74},68:{x:69,y:76},
+  69:{x:72,y:78},70:{x:75,y:80},71:{x:78,y:82},72:{x:81,y:84},73:{x:84,y:86},
+  74:{x:87,y:88},75:{x:89,y:92},76:{x:90,y:96},77:{x:89,y:100},78:{x:87,y:104},
+  79:{x:85,y:106},80:{x:82,y:108},81:{x:79,y:110},82:{x:76,y:112},83:{x:73,y:114},
+  84:{x:70,y:116},85:{x:67,y:118},86:{x:64,y:120},87:{x:61,y:122},88:{x:58,y:124},
+  89:{x:55,y:126},90:{x:52,y:128},91:{x:49,y:130},92:{x:46,y:132},93:{x:43,y:134},
+  94:{x:40,y:136},95:{x:37,y:138},96:{x:34,y:140},97:{x:31,y:142},98:{x:28,y:144},
+  99:{x:25,y:146},100:{x:22,y:148},101:{x:19,y:152},102:{x:17,y:156}
+};
+
+let coords = JSON.parse(localStorage.getItem('coordsTab') || 'null') || JSON.parse(JSON.stringify(PADRAO));
+let casa = 1;
+let arrastando = false;
+
+const tab = document.getElementById('tabuleiro');
+const marc = document.getElementById('marcador');
+const sel = document.getElementById('selCasa');
+
+for (let i = 1; i <= 102; i++) {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = 'Casa ' + i;
+  sel.appendChild(opt);
+}
+
+sel.onchange = () => { casa = parseInt(sel.value); atualizar(); };
+
+document.getElementById('imgInput').onchange = (e) => {
+  const f = e.target.files[0];
+  if (f) {
+    const r = new FileReader();
+    r.onload = (ev) => { document.getElementById('imgTab').src = ev.target.result; };
+    r.readAsDataURL(f);
+  }
+};
+
+function mover(dx, dy) {
+  const c = coords[casa];
+  c.x = Math.max(0, Math.min(100, c.x + dx));
+  c.y = Math.max(0, Math.min(100, c.y + dy));
+  salvar();
+  atualizar();
+}
+
+document.onkeydown = (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  const p = e.shiftKey ? 0.2 : 1;
+  if (e.key === 'ArrowLeft') mover(-p, 0);
+  else if (e.key === 'ArrowRight') mover(p, 0);
+  else if (e.key === 'ArrowUp') mover(0, -p);
+  else if (e.key === 'ArrowDown') mover(0, p);
+};
+
+marc.onmousedown = (e) => { e.preventDefault(); arrastando = true; };
+document.onmousemove = (e) => {
+  if (!arrastando) return;
+  const r = tab.getBoundingClientRect();
+  coords[casa].x = Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100));
+  coords[casa].y = Math.max(0, Math.min(100, ((e.clientY - r.top) / r.height) * 100));
+  salvar();
+  atualizar();
+};
+document.onmouseup = () => { arrastando = false; };
+
+tab.onclick = (e) => {
+  if (e.target === marc || e.target.id === 'marcadorInfo') return;
+  const r = tab.getBoundingClientRect();
+  coords[casa].x = Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100));
+  coords[casa].y = Math.max(0, Math.min(100, ((e.clientY - r.top) / r.height) * 100));
+  salvar();
+  atualizar();
+};
+
+function salvar() {
+  localStorage.setItem('coordsTab', JSON.stringify(coords));
+  document.getElementById('status').textContent = '✓ Salvo! (pode dar F5)';
+  setTimeout(() => { document.getElementById('status').textContent = 'Pronto.'; }, 1500);
+}
+
+function atualizar() {
+  const c = coords[casa];
+  marc.style.left = c.x + '%';
+  marc.style.top = c.y + '%';
+  document.getElementById('marcadorInfo').textContent = 'Casa ' + casa;
+  document.getElementById('infoCasa').textContent = casa;
+  document.getElementById('infoX').textContent = c.x.toFixed(2);
+  document.getElementById('infoY').textContent = c.y.toFixed(2);
+  document.getElementById('infoPx').textContent = Math.round(c.x * 6);
+  document.getElementById('infoPy').textContent = Math.round(c.y * 4.5);
+  
+  const pts = document.getElementById('todosPts');
+  pts.innerHTML = '';
+  for (let i = 1; i <= 102; i++) {
+    const d = document.createElement('div');
+    d.className = 'mini-pt' + (i === casa ? ' ativo' : '');
+    d.style.left = coords[i].x + '%';
+    d.style.top = coords[i].y + '%';
+    pts.appendChild(d);
+  }
+  
+  let cod = 'const COORDENADAS_TABULEIRO = {\n';
+  for (let i = 1; i <= 102; i++) {
+    cod += '  ' + i + ': { x: ' + coords[i].x.toFixed(2) + ', y: ' + coords[i].y.toFixed(2) + ' }' + (i < 102 ? ',' : '') + '\n';
+  }
+  cod += '};\n\nfunction getCoordenadaCasa(casa) {\n  return COORDENADAS_TABULEIRO[casa] || { x: 50, y: 50 };\n}';
+  document.getElementById('codigo').textContent = cod;
+}
+
+function copiarCodigo() {
+  const cod = document.getElementById('codigo').textContent;
+  navigator.clipboard.writeText(cod).then(() => {
+    document.getElementById('status').textContent = '✓✓✓ CÓDIGO COPIADO! Cole no coordenadas.js ✓✓✓';
+    setTimeout(() => { document.getElementById('status').textContent = 'Pronto.'; }, 3000);
+  }).catch(() => {
+    const range = document.createRange();
+    range.selectNode(document.getElementById('codigo'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    document.getElementById('status').textContent = '✓✓✓ CÓDIGO COPIADO! ✓✓✓';
+  });
+}
+
+function baixarArquivo() {
+  const cod = document.getElementById('codigo').textContent;
+  const blob = new Blob([cod], { type: 'text/javascript' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'coordenadas.js';
+  a.click();
+  document.getElementById('status').textContent = '✓ Arquivo baixado!';
+}
+
+function resetar() {
+  if (confirm('Apagar todas as alterações?')) {
+    localStorage.removeItem('coordsTab');
+    coords = JSON.parse(JSON.stringify(PADRAO));
+    atualizar();
+    document.getElementById('status').textContent = '✓ Resetado!';
+  }
+}
+
+atualizar();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogador</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Entrar no Jogo</h1>
+
+    <div id="login" class="card">
+      <label>Código da sala:
+        <input type="text" id="codigoSala" placeholder="Ex: ABC123" maxlength="6">
+      </label>
+      <label>Seu nome:
+        <input type="text" id="nomeJogador" placeholder="Digite seu nome" maxlength="20">
+      </label>
+      <button id="btnEntrar" class="btn btn-primario">Entrar</button>
+      <p id="erro" class="erro" style="display:none;"></p>
+    </div>
+
+    <div id="jogo" class="card" style="display:none;">
+      <h2 id="tituloJogador">Você</h2>
+      <p>Casa atual: <strong id="minhaCasa">0</strong></p>
+
+      <!-- TABULEIRO COM IMAGEM -->
+      <div class="tabuleiro-imagem-wrapper">
+        <div class="tabuleiro-imagem-container" id="tabuleiroImagem">
+          <!-- Peças dos jogadores serão inseridas aqui via JS -->
+        </div>
+      </div>
+      <div id="legenda" class="legenda"></div>
+
+      <div id="placar" class="placar"></div>
+
+      <div id="areaPergunta" class="area-pergunta" style="display:none;">
+        <p class="quem-joga">Vez de: <strong id="nomeQuemJoga"></strong></p>
+        <h3 id="textoPergunta">Pergunta</h3>
+        <p id="textoResposta" class="resposta-revelada" style="display:none;"></p>
+        <p id="resultadoTexto" class="resultado"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/coordenadas.js"></script>
+  <script src="js/jogador.js"></script>
+</body>
+</html>

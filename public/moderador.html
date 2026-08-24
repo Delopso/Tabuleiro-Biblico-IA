@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moderador</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎛️ Painel do Moderador</h1>
+
+    <div id="config" class="card">
+      <h2>Novo Jogo</h2>
+      <label>Quantos jogadores?
+        <input type="number" id="numJogadores" min="2" max="6" value="6">
+      </label>
+      <button id="btnCriar" class="btn btn-primario">Criar Sala</button>
+    </div>
+
+    <div id="jogo" class="card" style="display:none;">
+      <div class="info-sala">
+        <p>Código da sala: <strong id="codigoSala">---</strong></p>
+        <p>Jogadores conectados: <span id="contadorJogadores">0</span></p>
+      </div>
+
+      <!-- TABULEIRO COM IMAGEM -->
+      <div class="tabuleiro-imagem-wrapper">
+        <div class="tabuleiro-imagem-container" id="tabuleiroImagem">
+          <!-- Peças dos jogadores serão inseridas aqui via JS -->
+        </div>
+      </div>
+      <div id="legenda" class="legenda"></div>
+
+      <div id="tabuleiroMini" class="tabuleiro-mini"></div>
+
+      <div id="areaTurno" class="area-turno" style="display:none;">
+        <h3 id="textoPergunta">Pergunta</h3>
+        <div id="respostaSecreta" class="resposta-secreta"></div>
+        <div id="botoesJulgamento" class="botoes-julgamento">
+          <button id="btnAcerto" class="btn btn-sucesso">✓ Acerto</button>
+          <button id="btnErro" class="btn btn-perigo">✗ Erro</button>
+        </div>
+        <button id="btnPular" class="btn btn-primario" style="display:none;">⏭️ Passar Vez</button>
+      </div>
+
+      <div id="areaResultado" class="area-resultado" style="display:none;">
+        <p id="textoResultado"></p>
+        <button id="btnProximo" class="btn btn-primario">Próximo Jogador</button>
+      </div>
+
+      <button id="btnIniciarTurno" class="btn btn-primario">🎲 Rolar Dado</button>
+      <button id="btnEncerrar" class="btn btn-perigo">Encerrar Jogo</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/coordenadas.js"></script>
+  <script src="js/moderador.js"></script>
+</body>
+</html>
