@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🎮 Página do jogador carregada');
-
+  
   if (typeof io === 'undefined') {
     console.error('❌ Socket.io não carregado!');
     alert('Erro: Socket.io não carregado.');
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const socket = io();
   console.log('🔌 Conectando...');
-
+  
   let meuId = null;
   let jogadores = [];
 
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
   btnEntrar.addEventListener('click', function() {
     const codigo = inputCodigo.value.trim().toUpperCase();
     const nome = inputNome.value.trim();
-
+    
     if (!codigo) {
       divErro.textContent = 'Digite o código da sala.';
       divErro.style.display = 'block';
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
       divErro.style.display = 'block';
       return;
     }
-
+    
     divErro.style.display = 'none';
     socket.emit('entrarSala', { codigo, nome });
   });
@@ -65,9 +65,9 @@ document.addEventListener('DOMContentLoaded', function() {
   function atualizarTabuleiroImagem() {
     const container = document.getElementById('tabuleiroImagem');
     if (!container) return;
-
+    
     container.querySelectorAll('.peca-jogador').forEach(p => p.remove());
-
+    
     jogadores.forEach(j => {
       if (j.casa <= 0) return;
       const coords = getCoordenadaCasa(j.casa);
@@ -84,34 +84,50 @@ document.addEventListener('DOMContentLoaded', function() {
   function gerarLegenda() {
     const legenda = document.getElementById('legenda');
     if (!legenda) return;
+    
     const cores = ['#e53935', '#1e88e5', '#43a047', '#fdd835', '#8e24aa', '#fb8c00'];
-    legenda.innerHTML = jogadores.map((j, i) => `<div class="legenda-item"> <div class="legenda-cor" style="background:${cores[i % cores.length]}"></div> <span>${j.nome}${j.id === meuId ? ' (você)' : ''}</span> </div>`).join('');
+    legenda.innerHTML = jogadores.map((j, i) => 
+      `<div class="legenda-item"> 
+        <div class="legenda-cor" style="background:${cores[i % cores.length]}"></div> 
+        <span>${j.nome}${j.id === meuId ? ' (você)' : ''}</span> 
+      </div>`
+    ).join('');
   }
 
   socket.on('jogadoresAtualizados', function(lista) {
     console.log('👥 Jogadores atualizados:', lista);
     jogadores = lista;
-
+    
     const divMinhaCasa = document.getElementById('minhaCasa');
     const divPlacar = document.getElementById('placar');
-
+    
     if (divMinhaCasa) {
       const eu = lista.find(j => j.id === meuId);
       if (eu) divMinhaCasa.textContent = eu.casa;
     }
-
+    
     if (divPlacar) {
       divPlacar.innerHTML = '<h4>Placar</h4>' +
         lista.map(j => '<div class="jogador-placar ' + (j.id === meuId ? 'eu' : '') + '">' +
           j.nome + ': casa ' + j.casa + '</div>').join('');
     }
-
+    
     gerarLegenda();
     atualizarTabuleiroImagem();
   });
 
   socket.on('turnoIniciado', function(data) {
     console.log('🎯 Turno iniciado:', data);
+    
+    // ✅ NOVO: Mostrar o dado
+    const divDado = document.getElementById('resultadoDado');
+    const imgDado = document.getElementById('imgDado');
+    const numDado = document.getElementById('numDado');
+    if (divDado && imgDado && numDado) {
+      imgDado.src = `/images/dado${data.dado}.png`;
+      numDado.textContent = data.dado;
+      divDado.style.display = 'flex';
+    }
 
     if (divAreaPergunta) {
       divAreaPergunta.style.display = 'block';
@@ -119,9 +135,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const textoPergunta = document.getElementById('textoPergunta');
       const textoResposta = document.getElementById('textoResposta');
       const resultadoTexto = document.getElementById('resultadoTexto');
-
+      
       if (nomeQuemJoga) nomeQuemJoga.textContent = data.jogador;
-
+      
       if (data.semPergunta) {
         if (textoPergunta) {
           textoPergunta.textContent =
@@ -144,7 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('📊 Resultado:', data);
     const textoResposta = document.getElementById('textoResposta');
     const resultadoTexto = document.getElementById('resultadoTexto');
-
+    
     if (textoResposta) {
       let html = '<strong>Resposta:</strong> ' + (data.resposta || '—');
       if (data.fonte) {
@@ -156,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
       textoResposta.innerHTML = html;
       textoResposta.style.display = 'block';
     }
-
+    
     if (resultadoTexto) {
       resultadoTexto.innerHTML = data.jogador + ' ' +
         (data.acertou ? '✅ acertou' : '❌ errou') + '! Casa: ' + data.casaFinal;
@@ -164,43 +180,36 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   socket.on('proximoJogador', function() {
-    console.log('⏭️ Próximo jogador');
+    console.log('️ Próximo jogador');
+    
+    // ✅ NOVO: Esconder o dado
+    const divDado = document.getElementById('resultadoDado');
+    if (divDado) divDado.style.display = 'none';
+
     if (divAreaPergunta) divAreaPergunta.style.display = 'none';
   });
 
-  // ✅ NOVO: Mensagem final do jogo
+  // ✅ Mensagem final do jogo
   socket.on('jogoFinalizado', function({ ranking }) {
     console.log('🏆 Jogo finalizado!', ranking);
-
     const modal = document.createElement('div');
     modal.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8); display: flex; align-items: center;
+      justify-content: center; z-index: 9999;
     `;
-
+    
     const conteudo = document.createElement('div');
     conteudo.style.cssText = `
-      background: white;
-      padding: 40px;
-      border-radius: 15px;
-      max-width: 600px;
-      width: 90%;
-      text-align: center;
+      background: white; padding: 40px; border-radius: 15px;
+      max-width: 600px; width: 90%; text-align: center;
       box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     `;
-
+    
     let rankingHTML = '<h2 style="color: #1e88e5; margin-bottom: 20px;">🏆 PARTIDA ENCERRADA!</h2>';
     rankingHTML += '<div style="text-align: left; margin: 30px 0;">';
     rankingHTML += '<h3 style="color: #333; margin-bottom: 15px;">📊 RESULTADO FINAL:</h3>';
-
+    
     ranking.forEach((jogador, index) => {
       const medalha = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🎖️';
       const destaque = jogador.nome === ranking.find(j => j.id === meuId)?.nome ? 'border: 2px solid #1e88e5;' : '';
@@ -212,14 +221,11 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       `;
     });
-
+    
     rankingHTML += '</div>';
-    rankingHTML += '<p style="color: #666; font-style: italic; margin-top: 20px;">Parabéns a todos! Cada acerto representa conhecimento conquistado, e cada erro é uma oportunidade de aprender algo novo. Que tal pesquisar sobre as perguntas que mais surpreenderam vocês hoje? O verdadeiro prêmio é a curiosidade que despertamos!</p>';
+    rankingHTML += '<p style="color: #666; font-style: italic; margin-top: 20px;">Parabéns a todos! Cada acerto representa conhecimento conquistado, e cada erro é uma oportunidade de aprender algo novo.</p>';
     rankingHTML += '<button onclick="location.reload()" style="margin-top: 20px; padding: 12px 30px; background: #1e88e5; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">Voltar ao Início</button>';
-//Todos vocês expandiram seus horizontes hoje! Lembrem-se: o conhecimento continua além do tabuleiro. Pesquisem, descubram e voltem sempre!
-//Parabéns a todos! Cada acerto representa conhecimento conquistado, e cada erro é uma oportunidade de aprender algo novo. Que tal pesquisar sobre as perguntas que mais surpreenderam vocês hoje? O verdadeiro prêmio é a curiosidade que despertamos!
-//Não importa a posição no ranking - todos vocês saem mais sábios do que quando começaram. Que descobertas mais marcaram vocês hoje? Compartilhem e continuem aprendendo!
-
+    
     conteudo.innerHTML = rankingHTML;
     modal.appendChild(conteudo);
     document.body.appendChild(modal);
